@@ -1,0 +1,40 @@
+server:
+  port: ${PORT:8085}
+
+spring:
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:h2:mem:restaurantdbTest}
+    username: ${DATASOURCE_USER:sa}
+    password: ${DATASOURCE_PASSWORD:}
+    driver-class-name: org.h2.Driver
+  jpa:
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      "[hibernate.format_sql]": true
+      "[hibernate.generate_statistics]": true
+  liquibase:
+    enabled: true
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+  h2:
+    console:
+      enabled: true
+      path: /h2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+token:
+  expiration: ${TOKEN_EXPIRATION:864000000} # 10 days by default
+  secret: ${TOKEN_SECRET:asdWasdWASGHEt31Sh34As5}
+
+logging:
+  level:
+    "[org.springframework.web]": ERROR
+    "[com.martikan.restaurantapi]": DEBUG
+    "[org.hibernate]": DEBUG
