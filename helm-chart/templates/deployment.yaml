@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "restaurant.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "restaurant.name" . }}
+    helm.sh/chart: {{ include "restaurant.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.restaurant.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "restaurant.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config:
+          {{ include (print $.Template.BasePath "/config-api.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: {{ include "restaurant.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.restaurant.image.repository }}:{{ .Values.restaurant.image.tag }}
+          imagePullPolicy: {{ .Values.restaurant.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "restaurant.name" . }}-api-configmap

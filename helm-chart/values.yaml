@@ -1,0 +1,72 @@
+global:
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  imagePullSecrets: []
+
+persistence:
+  enabled: true
+  baseSize: 3Gi
+  storageClass:
+    enabled: false
+    accessModes:
+      - ReadWriteMany
+    name: 'nfs'
+  existingClaim: 'restaurant-volume-claim'
+
+serviceAccount:
+  create: true
+  name:
+
+postgresql:
+  enabled: true
+  global:
+    postgresql:
+      postgresqlUsername: postgres
+      postgresqlPassword: aaa
+      postgresqlDatabase: restaurant
+  service:
+    type: NodePort
+    port: 5432
+    nodePort: 30019
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+  persistence:
+    enabled: true
+    existingClaim: 'restaurant-volume-claim'
+    subPath: 'restaurant-data/postgresql-data'
+
+restaurant:
+  replicaCount: 1
+  image:
+    repository: martikan/restaurant-api
+    tag: 'latest' # dev - dev-2022-03-11
+    pullPolicy: IfNotPresent
+    internalPort: 8085
+  service:
+    type: LoadBalancer
+    port: 8085
+    nodePort: 30020
+  ingress:
+    enabled: false
+    annotations: {}
+    hosts:
+      - host: restaurant.local
+        paths:
+          - /
+    tls: []
+  resources:
+    requests:
+      cpu: 100m
+      memory: 263Mi
+    limits:
+      cpu: 442m
+      memory: 300Mi
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 80
